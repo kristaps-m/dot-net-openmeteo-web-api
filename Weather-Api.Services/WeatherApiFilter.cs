@@ -12,7 +12,7 @@ namespace Weather_Api.Services
 			{
                 try
                 {
-					hourlyDictionary.Add(fromDateTimeToHours(countries.Hourly.Time[i]),
+					hourlyDictionary.Add(countries.Hourly.Time[i].ToString("HH:mm"),
 						countries.Hourly.Temperature_2m[i]);
                 }
                 catch
@@ -31,12 +31,5 @@ namespace Weather_Api.Services
 
 			return emptyModifiedApiResponse;
 		}
-
-		string fromDateTimeToHours(DateTime datetime)
-        {
-			// "2023-05-11 00:00:00" => "00:00"
-			var date = datetime.ToString().Split(" ")[1];
-			return date.Length == 7 ? "0"+date.Substring(0, 4) : date.Substring(0,5);
-        }
 	}
 }
