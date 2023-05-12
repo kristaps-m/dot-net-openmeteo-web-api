@@ -9,47 +9,33 @@ namespace Weather_Api.Controllers
     [ApiController]
     public class WeatherController : ControllerBase
     {
-        private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
         private readonly IWeatherApiFilter _weatherApiFilter;
+        private readonly IWeatherService _weatherService;
 
-        public WeatherController(IHttpClientFactory httpClientFactory, IConfiguration configuration,
-            IWeatherApiFilter weatherApiFilter)
+        public WeatherController(IConfiguration configuration,
+            IWeatherApiFilter weatherApiFilter, IWeatherService weatherService)
         {
-            _httpClientFactory = httpClientFactory;
             _configuration = configuration;
             _weatherApiFilter = weatherApiFilter;
+            _weatherService = weatherService;
         }
 
         [HttpGet("locations/{alias}/temperature")]
         public async Task<IActionResult> GetTemperature(string alias)
         {
             var locations = _configuration.GetSection("Locations").Get<List<Location>>();
-
             var location = locations.Find(l => l.Alias.Equals(alias, StringComparison.OrdinalIgnoreCase));
+
             if (location == null)
             {
                 return NotFound($"Location with alias '{alias}' not found.");
             }
 
-            var latitude = location.Latitude;
-            var longitude = location.Longitude;
-            var apiUrl = $"https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}&hourly=temperature_2m";
+            var weatherData = await _weatherService.GetWeatherData(alias, location);
+            var modifiedResponse = _weatherApiFilter.FilterWeatherApiResponseToModifiedResponse(weatherData, alias);
 
-            var httpClient = _httpClientFactory.CreateClient();
-            var response = await httpClient.GetAsync(apiUrl);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                WeatherApiResponse myObject = JsonConvert.DeserializeObject<WeatherApiResponse>(content);
-                var modifiedResponse = _weatherApiFilter.FilterWeatherApiResponseToModifiedResponse(myObject, alias);
-                return Ok(modifiedResponse);
-            }
-            else
-            {
-                return StatusCode((int)response.StatusCode, response.ReasonPhrase);
-            }
+            return Ok(modifiedResponse);
         }
     }
 }
