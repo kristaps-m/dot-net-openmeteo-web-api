@@ -8,12 +8,12 @@ namespace Weather_Api.Services
 		{
 			IDictionary<string, double> hourlyDictionary = new Dictionary<string, double>();
 
-			for (var i = 0; i < countries.hourly.time.Count; i++)
+			for (var i = 0; i < countries.Hourly.Time.Count; i++)
 			{
                 try
                 {
-					hourlyDictionary.Add(fromDateTimeToHours(countries.hourly.time[i]),
-						countries.hourly.temperature_2m[i]);
+					hourlyDictionary.Add(fromDateTimeToHours(countries.Hourly.Time[i]),
+						countries.Hourly.Temperature_2m[i]);
                 }
                 catch
                 {
@@ -23,7 +23,7 @@ namespace Weather_Api.Services
 
 			var emptyModifiedApiResponse = new ModifiedApiResponse()
 			{
-				Alias = theAlias,
+				Alias = theAlias.ToLower(),
 				Latitude = countries.Latitude,
 				Longitude = countries.Longitude,
 				Hourly_temperature = hourlyDictionary,
